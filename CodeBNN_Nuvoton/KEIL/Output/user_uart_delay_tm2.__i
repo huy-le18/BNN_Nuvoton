@@ -1,0 +1,1 @@
+"..\user_library\src\user_uart_delay_tm2.c" LARGE OMF2 OPTIMIZE (7,SPEED) BROWSE INCDIR(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\user_uart_delay_tm2.lst) TABS (2) OBJECT(.\Output\user_uart_delay_tm2.obj)

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   UART                                                              11/13/2023 22:07:52 PAGE 1   
+C51 COMPILER V9.60.7.0   UART                                                              11/14/2023 10:02:49 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE UART
@@ -62,7 +62,7 @@ line level    source
                   }
               
                   if (TI_1 == 1)
-C51 COMPILER V9.60.7.0   UART                                                              11/13/2023 22:07:52 PAGE 2   
+C51 COMPILER V9.60.7.0   UART                                                              11/14/2023 10:02:49 PAGE 2   
 
                   {
                       if (!PRINTFG)
@@ -126,7 +126,7 @@ line level    source
                       while (!RI_1);
                       c = SBUF_1;
                       RI_1 = 0;
-C51 COMPILER V9.60.7.0   UART                                                              11/13/2023 22:07:52 PAGE 3   
+C51 COMPILER V9.60.7.0   UART                                                              11/14/2023 10:02:49 PAGE 3   
 
                     break;
                   }

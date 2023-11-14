@@ -472,9 +472,14 @@
               <FilePath>..\Library\StdDriver\src\wkt.c</FilePath>
             </File>
             <File>
-              <FileName>delay_ms_tm3.c</FileName>
+              <FileName>user_uart_delay_tm2.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\user_library\src\delay_ms_tm3.c</FilePath>
+              <FilePath>..\user_library\src\user_uart_delay_tm2.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\user_library\src\user_i2c.c</FilePath>
             </File>
           </Files>
         </Group>

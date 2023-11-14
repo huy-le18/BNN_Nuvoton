@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   I2C                                                               11/13/2023 22:07:51 PAGE 1   
+C51 COMPILER V9.60.7.0   I2C                                                               11/14/2023 10:02:47 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE I2C
@@ -62,7 +62,7 @@ line level    source
   45          void I2C_Slave_Open( unsigned char u8SlaveAddress0)
   46          {
   47   1              SFRS = 0; 
-C51 COMPILER V9.60.7.0   I2C                                                               11/13/2023 22:07:51 PAGE 2   
+C51 COMPILER V9.60.7.0   I2C                                                               11/14/2023 10:02:47 PAGE 2   
 
   48   1              I2ADDR = u8SlaveAddress0; 
   49   1              set_I2CON_I2CEN;
@@ -126,7 +126,7 @@ line level    source
  107            * @param[in]  u8I2CTRStatus:  Specify I2C Timer status
  108            *                  - \ref Enable
  109            *                  - \ref Disable
-C51 COMPILER V9.60.7.0   I2C                                                               11/13/2023 22:07:51 PAGE 3   
+C51 COMPILER V9.60.7.0   I2C                                                               11/14/2023 10:02:47 PAGE 3   
 
  110           * @return     None
  111           * @Note       This function enable time-out function and configure DIV4 to support longer time-out.

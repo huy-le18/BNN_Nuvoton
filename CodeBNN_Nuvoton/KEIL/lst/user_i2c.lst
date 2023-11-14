@@ -1,0 +1,95 @@
+C51 COMPILER V9.60.7.0   USER_I2C                                                          11/14/2023 15:03:50 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE USER_I2C
+OBJECT MODULE PLACED IN .\Output\user_i2c.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\user_library\src\user_i2c.c LARGE OMF2 OPTIMIZE(7,SPEED) BROWSE INCDI
+                    -R(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\user_i2c.lst) TABS(2) OBJECT
+                    -(.\Output\user_i2c.obj)
+
+line level    source
+
+   1          #include "user_i2c.h"
+   2          #include "ms51_16k.h"
+   3          
+   4          #define SCL_PIN   P02
+   5          #define SDA_PIN   P16
+   6          
+   7          #define SCL_MCR   2
+   8          #define SDA_MCR   6
+   9          
+  10          
+  11          void user_i2c_scl_set_output(void)
+  12          {
+  13   1      //  user_gpio_output_init(SCL_GPIO, SCL_PIN);
+  14   1        P0M1 &= ~(1 << SCL_MCR);
+  15   1        P0M2 |= (1 << SCL_MCR);  // 0b0001 0000  = 0x10
+  16   1      }
+  17          void user_i2c_scl_output_high(void)
+  18          {
+  19   1        SCL_PIN = 1;
+  20   1      }
+  21          
+  22          void user_i2c_scl_output_low(void)
+  23          {
+  24   1        SCL_PIN = 0;
+  25   1      }
+  26          
+  27          void user_i2c_scl_tonggle(void)
+  28          {
+  29   1        SCL_PIN = !SCL_PIN;
+  30   1      }
+  31          
+  32          
+  33          void user_i2c_sda_set_output(void)
+  34          {
+  35   1        P1M1 &= ~(1 << SDA_MCR);
+  36   1        P1M2 |= (1 << SDA_MCR);  // 0b0001 0000  = 0x10
+  37   1      }
+  38          
+  39          void user_i2c_sda_output_high(void)
+  40          {
+  41   1        SDA_PIN = 1;
+  42   1      }
+  43          void user_i2c_sda_output_low(void)
+  44          {
+  45   1        SDA_PIN = 0;
+  46   1      }
+  47          
+  48          void user_i2c_sda_set_input(void)
+  49          {
+  50   1        P1M1 |= (1 << SDA_MCR);  // 0b0001 0000  = 0x10
+  51   1        P1M2 &= ~(1 << SDA_MCR);
+  52   1      }
+  53          
+C51 COMPILER V9.60.7.0   USER_I2C                                                          11/14/2023 15:03:50 PAGE 2   
+
+  54          bit user_i2c_sda_get_data(void)
+  55          {
+  56   1        bit temp;
+  57   1      
+  58   1      //  temp = user_gpio_input_read(SDA_GPIO, SDA_PIN);
+  59   1        temp = P16;
+  60   1      
+  61   1        return temp;
+  62   1      }
+  63          
+  64          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     43    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

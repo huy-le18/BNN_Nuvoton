@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/13/2023 22:07:51 PAGE 1   
+C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/14/2023 10:02:47 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE IAP_SPROM
@@ -62,7 +62,7 @@ line level    source
   44           * @example      LDROM_BlanckCheck(0x0000,2048);
   45           */
   46          void Erase_Verify_SPROM(unsigned int u16IAPDataSize)
-C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/13/2023 22:07:51 PAGE 2   
+C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/14/2023 10:02:47 PAGE 2   
 
   47          {
   48   1          unsigned int u16Count;
@@ -126,7 +126,7 @@ line level    source
  106           * @param       u16IAPDataSize define LDROM need be erase bytes size
  107           * @return      none
  108           * @details     Check with XRAM IAPDataBuf with LDROM
-C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/13/2023 22:07:51 PAGE 3   
+C51 COMPILER V9.60.7.0   IAP_SPROM                                                         11/14/2023 10:02:47 PAGE 3   
 
  109           * @example      LDROM_Program_Verify(0x0000,1024);
  110           */
