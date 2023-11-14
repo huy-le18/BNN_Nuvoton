@@ -1,0 +1,60 @@
+C51 COMPILER V9.60.7.0   SPI                                                               11/13/2023 22:07:52 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE SPI
+OBJECT MODULE PLACED IN .\Output\spi.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Library\StdDriver\src\spi.c LARGE OMF2 OPTIMIZE(7,SPEED) BROWSE INCDI
+                    -R(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\spi.lst) TABS(2) OBJECT(.\Ou
+                    -tput\spi.obj)
+
+line level    source
+
+   1          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   2          /*                                                                                                        
+             - */
+   3          /* SPDX-License-Identifier: Apache-2.0                                                                    
+             - */
+   4          /* Copyright(c) 2022 Nuvoton Technology Corp. All rights reserved.                                        
+             - */
+   5          /*                                                                                                        
+             - */
+   6          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   7          #include "ms51_16k.h"
+   8          
+   9          /****************************************************************/
+  10          void Spi_Write_Byte(unsigned char u8SpiWB)
+  11          {
+  12   1          SPDR = u8SpiWB;
+  13   1          while(!(SPSR&0x80));
+  14   1          clr_SPSR_SPIF;
+  15   1      }
+  16          /****************************************************************/
+  17          unsigned char Spi_Read_Byte(unsigned char u8SpiWB)
+  18          {
+  19   1          unsigned char u8SpiRB;
+  20   1          SPDR = u8SpiWB;
+  21   1          while(!(SPSR&0x80));
+  22   1          u8SpiRB = SPDR;
+  23   1          clr_SPSR_SPIF;
+  24   1          return u8SpiRB;
+  25   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     24    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

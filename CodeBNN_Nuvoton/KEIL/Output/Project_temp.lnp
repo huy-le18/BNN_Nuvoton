@@ -1,0 +1,24 @@
+".\Output\main.obj",
+".\Output\adc.obj",
+".\Output\bod.obj",
+".\Output\common.obj",
+".\Output\delay.obj",
+".\Output\eeprom.obj",
+".\Output\eeprom_sprom.obj",
+".\Output\i2c.obj",
+".\Output\IAP.obj",
+".\Output\IAP_SPROM.obj",
+".\Output\isr.obj",
+".\Output\pwm.obj",
+".\Output\spi.obj",
+".\Output\sys.obj",
+".\Output\timer.obj",
+".\Output\uart.obj",
+".\Output\wdt.obj",
+".\Output\wkt.obj",
+".\Output\delay_ms_tm3.obj",
+".\Output\STARTUP.obj" 
+TO ".\Output\Project_temp" 
+
+PRINT(".\lst\Project_temp.map") DISABLEWARNING (16) 
+REMOVEUNUSED 

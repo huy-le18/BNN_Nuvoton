@@ -1,0 +1,409 @@
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE ISR
+OBJECT MODULE PLACED IN .\Output\isr.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Library\StdDriver\src\isr.c LARGE OMF2 OPTIMIZE(7,SPEED) BROWSE INCDI
+                    -R(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\isr.lst) TABS(2) OBJECT(.\Ou
+                    -tput\isr.obj)
+
+line level    source
+
+   1          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   2          /*                                                                                                        
+             - */
+   3          /* SPDX-License-Identifier: Apache-2.0                                                                    
+             - */
+   4          /* Copyright(c) 2022 Nuvoton Technology Corp. All rights reserved.                                        
+             - */
+   5          /*                                                                                                        
+             - */
+   6          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   7          #include "ms51_16k.h"
+   8          
+   9          /*all interrupt subroutine list */
+  10          #if 0
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void INT0_ISR(void) interrupt 0          // Vector @  0x03
+              {
+                  _push_(SFRS);
+                
+                  clr_TCON_IE0;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Timer0_ISR(void) interrupt 1        // Vector @  0x0B
+              {
+                  _push_(SFRS);
+                
+                  clr_TCON_TF0;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void INT1_ISR(void) interrupt 2          // Vector @  0x13
+              {
+                  _push_(SFRS);
+                
+                  clr_TCON_IE1;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Timer1_ISR(void) interrupt 3        // Vector @  0x1B
+              {
+                  _push_(SFRS);
+                
+                  clr_TCON_TF1;
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 2   
+
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void UART0_ISR(void) interrupt 4         // Vector @  0x23
+              {
+                  _push_(SFRS);
+                
+                  clr_SCON_RI;
+                  clr_SCON_TI;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Timer2_ISR(void) interrupt 5        // Vector @  0x2B
+              {
+                  _push_(SFRS);
+                
+                  clr_T2CON_TF2;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void I2C_ISR(void) interrupt 6           // Vector @  0x33
+              {
+                  _push_(SFRS);
+                
+                  clr_I2CON_SI;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Pin_INT_ISR(void) interrupt 7       // Vector @  0x3B
+              {
+                  _push_(SFRS);
+                
+                  PIF = 0;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void BOD_ISR(void) interrupt 8           // Vector @  0x43
+              {
+                  _push_(SFRS);
+                
+                  clr_BODCON0_BOF;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void SPI_ISR(void) interrupt 9           // Vector @  0x4B
+              {
+                  _push_(SFRS);
+                
+                  clr_SPSR_SPIF;
+              
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 3   
+
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void WDT_ISR(void) interrupt 10          // Vector @  0x53
+              {
+                  _push_(SFRS);
+                
+                  clr_WDCON_WDTF;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void ADC_ISR(void) interrupt 11          // Vector @  0x5B
+              {
+                  _push_(SFRS);
+                
+                  clr_ADCCON0_ADCF;
+                  
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Capture_ISR(void) interrupt 12      // Vector @  0x63
+              {
+                  _push_(SFRS);
+                
+                  clr_CAPCON0_CAPF0;
+                  clr_CAPCON0_CAPF1;
+                  clr_CAPCON0_CAPF2;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void PWM_Brake_ISR(void) interrupt 14    // Vector @  0x73
+              {
+                  _push_(SFRS);
+                
+                  clr_FBD_FBF;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void UART1_ISR(void) interrupt 15          // Vector @  0x7B
+              {
+                  _push_(SFRS);
+                
+                  clr_SCON_1_RI_1;
+                  clr_SCON_1_TI_1;
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void Timer3_ISR(void) interrupt 16        // Vector @  0x83
+              {
+                  _push_(SFRS);
+                
+                  clr_T3CON_TF3;
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 4   
+
+              
+                  _pop_(SFRS);
+              }
+              //--------------------------------------------------------------------------------------------------------
+             ----
+              void WKT_ISR(void) interrupt 17            // Vector @  0x8B
+              {
+                  _push_(SFRS);
+                
+                  clr_WKCON_WKTF;
+              
+                  _pop_(SFRS);
+              }
+              #endif
+ 169          
+ 170            /**
+ 171            * @brief This API configures Interrupt level
+ 172            * @param[in] u8InterruptSource . Valid values are the interrupt name:
+ 173            *                       - \ref INT_INT0       :
+ 174            *                       - \ref INT_BOD        :
+ 175            *                       - \ref INT_WDT        :
+ 176            *                       - \ref INT_Timer0     :
+ 177            *                       - \ref INT_I2C0       :
+ 178            *                       - \ref INT_ADC        :
+ 179            *                       - \ref INT_INT1       :
+ 180            *                       - \ref INT_PIT        :
+ 181            *                       - \ref INT_Timer1     :
+ 182            *                       - \ref INT_UART0      :
+ 183            *                       - \ref INT_PWM0_Brake :
+ 184            *                       - \ref INT_SPI0       :
+ 185            *                       - \ref INT_Timer2     :
+ 186            *                       - \ref INT_Capture    :
+ 187            *                       - \ref INT_PWM0       : 
+ 188            *                       - \ref INT_Timer3     :
+ 189            *                       - \ref INT_WKT        :
+ 190            * @note      u8u8InterruptPriorityLevel.Valid values are the interrupt level number:
+ 191            *                       - \ref 0~3            :
+ 192            * @exmaple : Set_Interrupt_Priority_Level(INT_ADC, 1);
+ 193          */
+ 194          void Set_Interrupt_Priority_Level( unsigned char u8InterruptSource, unsigned char u8u8InterruptPriorityLev
+             -el)
+ 195          {
+ 196   1         switch (u8InterruptSource)
+ 197   1         {
+ 198   2              case INT_INT0        :
+ 199   2                switch (u8u8InterruptPriorityLevel)
+ 200   2                {
+ 201   3                  case 0:  clr_IP_PX0; clr_IPH_PX0H; break;
+ 202   3                  case 1:  clr_IP_PX0; set_IPH_PX0H; break;
+ 203   3                  case 2:  set_IP_PX0; clr_IPH_PX0H; break;
+ 204   3                  case 3:  clr_IP_PX0; set_IPH_PX0H; break;
+ 205   3                }
+ 206   2              case INT_BOD          :
+ 207   2                      switch (u8u8InterruptPriorityLevel)
+ 208   2                {
+ 209   3                  case 0:  clr_IP_PBOD; clr_IPH_PBODH; break;
+ 210   3                  case 1:  clr_IP_PBOD; set_IPH_PBODH; break;
+ 211   3                  case 2:  set_IP_PBOD; clr_IPH_PBODH; break;
+ 212   3                  case 3:  set_IP_PBOD; set_IPH_PBODH; break;
+ 213   3                }
+ 214   2              case INT_WDT           :
+ 215   2                     switch (u8u8InterruptPriorityLevel)
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 5   
+
+ 216   2                {
+ 217   3                  case 0:  clr_EIP_PWDT; clr_EIPH_PWDTH; break;
+ 218   3                  case 1:  clr_EIP_PWDT; set_EIPH_PWDTH; break;
+ 219   3                  case 2:  set_EIP_PWDT; clr_EIPH_PWDTH; break;
+ 220   3                  case 3:  set_EIP_PWDT; set_EIPH_PWDTH; break;
+ 221   3                }        
+ 222   2              case INT_Timer0        :
+ 223   2                      switch (u8u8InterruptPriorityLevel)
+ 224   2                {
+ 225   3                  case 0:  clr_IP_PT0; clr_IPH_PT0H; break;
+ 226   3                  case 1:  clr_IP_PT0; set_IPH_PT0H; break;
+ 227   3                  case 2:  set_IP_PT0; clr_IPH_PT0H; break;
+ 228   3                  case 3:  set_IP_PT0; set_IPH_PT0H; break;
+ 229   3                }
+ 230   2              case INT_I2C0          :
+ 231   2                      switch (u8u8InterruptPriorityLevel)
+ 232   2                {
+ 233   3                  case 0:  clr_EIP_PI2C; clr_EIPH_PI2CH; break;
+ 234   3                  case 1:  clr_EIP_PI2C; set_EIPH_PI2CH; break;
+ 235   3                  case 2:  set_EIP_PI2C; clr_EIPH_PI2CH; break;
+ 236   3                  case 3:  set_EIP_PI2C; set_EIPH_PI2CH; break;
+ 237   3                }
+ 238   2              case INT_ADC           :
+ 239   2                      switch (u8u8InterruptPriorityLevel)
+ 240   2                {
+ 241   3                  case 0:  clr_IP_PADC; clr_IPH_PADCH; break;
+ 242   3                  case 1:  clr_IP_PADC; set_IPH_PADCH; break;
+ 243   3                  case 2:  set_IP_PADC; clr_IPH_PADCH; break;
+ 244   3                  case 3:  set_IP_PADC; set_IPH_PADCH; break;
+ 245   3                }        
+ 246   2              case INT_INT1        :
+ 247   2                switch (u8u8InterruptPriorityLevel)
+ 248   2                {
+ 249   3                  case 0:  clr_IP_PX1; clr_IPH_PX1H; break;
+ 250   3                  case 1:  clr_IP_PX1; set_IPH_PX1H; break;
+ 251   3                  case 2:  set_IP_PX1; clr_IPH_PX1H; break;
+ 252   3                  case 3:  set_IP_PX1; set_IPH_PX1H; break;
+ 253   3                }
+ 254   2              case INT_PIT           :
+ 255   2                      switch (u8u8InterruptPriorityLevel)
+ 256   2                {
+ 257   3                  case 0:  clr_EIP_PPI; clr_EIPH_PPIH; break;
+ 258   3                  case 1:  clr_EIP_PPI; set_EIPH_PPIH; break;
+ 259   3                  case 2:  set_EIP_PPI; clr_EIPH_PPIH; break;
+ 260   3                  case 3:  set_EIP_PPI; set_EIPH_PPIH; break;
+ 261   3                }        
+ 262   2              case INT_Timer1        :
+ 263   2                      switch (u8u8InterruptPriorityLevel)
+ 264   2                {
+ 265   3                  case 0:  clr_IP_PT1; clr_IPH_PT1H; break;
+ 266   3                  case 1:  clr_IP_PT1; set_IPH_PT1H; break;
+ 267   3                  case 2:  set_IP_PT1; clr_IPH_PT1H; break;
+ 268   3                  case 3:  set_IP_PT1; set_IPH_PT1H; break;
+ 269   3                }
+ 270   2              case INT_UART0         :
+ 271   2                    switch (u8u8InterruptPriorityLevel)
+ 272   2                {          
+ 273   3                  case 0:  clr_IP_PS; clr_IPH_PSH; break;
+ 274   3                  case 1:  clr_IP_PS; set_IPH_PSH; break;
+ 275   3                  case 2:  set_IP_PS; clr_IPH_PSH; break;
+ 276   3                  case 3:  set_IP_PS; set_IPH_PSH; break;
+ 277   3                }        
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 6   
+
+ 278   2              case INT_PWM0_Brake :
+ 279   2                    switch (u8u8InterruptPriorityLevel)
+ 280   2                {          
+ 281   3                  case 0:  clr_EIP_PFB; clr_EIPH_PFBH; break;
+ 282   3                  case 1:  clr_EIP_PFB; set_EIPH_PFBH; break;
+ 283   3                  case 2:  set_EIP_PFB; clr_EIPH_PFBH; break;
+ 284   3                  case 3:  set_EIP_PFB; set_EIPH_PFBH; break;
+ 285   3                }
+ 286   2              case INT_SPI0          :
+ 287   2                    switch (u8u8InterruptPriorityLevel)
+ 288   2                {          
+ 289   3                  case 0:  clr_EIP_PSPI; clr_EIPH_PSPIH; break;
+ 290   3                  case 1:  clr_EIP_PSPI; set_EIPH_PSPIH; break;
+ 291   3                  case 2:  set_EIP_PSPI; clr_EIPH_PSPIH; break;
+ 292   3                  case 3:  set_EIP_PSPI; set_EIPH_PSPIH; break;
+ 293   3                }        
+ 294   2              case INT_Timer2        :
+ 295   2                    switch (u8u8InterruptPriorityLevel)
+ 296   2                {          
+ 297   3                  case 0:  clr_EIP_PT2; clr_EIPH_PT2H; break;
+ 298   3                  case 1:  clr_EIP_PT2; set_EIPH_PT2H; break;
+ 299   3                  case 2:  set_EIP_PT2; clr_EIPH_PT2H; break;
+ 300   3                  case 3:  set_EIP_PT2; set_EIPH_PT2H; break;
+ 301   3                }         
+ 302   2              case INT_Capture       :
+ 303   2                    switch (u8u8InterruptPriorityLevel)
+ 304   2                {          
+ 305   3                  case 0:  clr_EIP_PCAP; clr_EIPH_PCAPH; break;
+ 306   3                  case 1:  clr_EIP_PCAP; set_EIPH_PCAPH; break;
+ 307   3                  case 2:  set_EIP_PCAP; clr_EIPH_PCAPH; break;
+ 308   3                  case 3:  set_EIP_PCAP; set_EIPH_PCAPH; break;
+ 309   3                }
+ 310   2              case INT_PWM0          :                          
+ 311   2                    switch (u8u8InterruptPriorityLevel)
+ 312   2                {          
+ 313   3                  case 0:  clr_EIP_PPWM; clr_EIPH_PPWMH; break;
+ 314   3                  case 1:  clr_EIP_PPWM; set_EIPH_PPWMH; break;
+ 315   3                  case 2:  set_EIP_PPWM; clr_EIPH_PPWMH; break;
+ 316   3                  case 3:  set_EIP_PPWM; set_EIPH_PPWMH; break;
+ 317   3                }
+ 318   2              case INT_UART1         :
+ 319   2                   switch (u8u8InterruptPriorityLevel)
+ 320   2                {          
+ 321   3                  case 0:  clr_EIP1_PS_1; clr_EIPH1_PSH_1; break;
+ 322   3                  case 1:  clr_EIP1_PS_1; set_EIPH1_PSH_1; break;
+ 323   3                  case 2:  set_EIP1_PS_1; clr_EIPH1_PSH_1; break;
+ 324   3                  case 3:  set_EIP1_PS_1; set_EIPH1_PSH_1; break;
+ 325   3                }        
+ 326   2              case INT_Timer3        :
+ 327   2                  switch (u8u8InterruptPriorityLevel)
+ 328   2                {          
+ 329   3                  case 0:  clr_EIP1_PT3; clr_EIPH1_PT3H; break;
+ 330   3                  case 1:  clr_EIP1_PT3; set_EIPH1_PT3H; break;
+ 331   3                  case 2:  set_EIP1_PT3; clr_EIPH1_PT3H; break;
+ 332   3                  case 3:  set_EIP1_PT3; set_EIPH1_PT3H; break;
+ 333   3                } 
+ 334   2              case INT_WKT           :
+ 335   2                  switch (u8u8InterruptPriorityLevel)
+ 336   2                {          
+ 337   3                  case 0:  clr_EIP1_PWKT; clr_EIPH1_PWKTH; break;
+ 338   3                  case 1:  clr_EIP1_PWKT; set_EIPH1_PWKTH; break;
+ 339   3                  case 2:  set_EIP1_PWKT; clr_EIPH1_PWKTH; break;
+C51 COMPILER V9.60.7.0   ISR                                                               11/13/2023 22:07:51 PAGE 7   
+
+ 340   3                  case 3:  set_EIP1_PWKT; set_EIPH1_PWKTH; break;
+ 341   3                }
+ 342   2              break;
+ 343   2         }
+ 344   1       }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2447    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

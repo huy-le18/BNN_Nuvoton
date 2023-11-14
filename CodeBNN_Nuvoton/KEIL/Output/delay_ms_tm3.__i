@@ -1,0 +1,1 @@
+"..\user_library\src\delay_ms_tm3.c" LARGE OMF2 OPTIMIZE (7,SPEED) BROWSE INCDIR(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\delay_ms_tm3.lst) TABS (2) OBJECT(.\Output\delay_ms_tm3.obj)

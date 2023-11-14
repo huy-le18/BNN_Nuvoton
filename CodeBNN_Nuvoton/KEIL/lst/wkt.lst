@@ -1,0 +1,148 @@
+C51 COMPILER V9.60.7.0   WKT                                                               11/13/2023 22:07:53 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE WKT
+OBJECT MODULE PLACED IN .\Output\wkt.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\Library\StdDriver\src\wkt.c LARGE OMF2 OPTIMIZE(7,SPEED) BROWSE INCDI
+                    -R(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\wkt.lst) TABS(2) OBJECT(.\Ou
+                    -tput\wkt.obj)
+
+line level    source
+
+   1          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   2          /*                                                                                                        
+             - */
+   3          /* SPDX-License-Identifier: Apache-2.0                                                                    
+             - */
+   4          /* Copyright(c) 2022 Nuvoton Technology Corp. All rights reserved.                                        
+             - */
+   5          /*                                                                                                        
+             - */
+   6          /*--------------------------------------------------------------------------------------------------------
+             --*/
+   7          #include "ms51_16k.h"
+   8          
+   9          /**
+  10            * @brief     WKT Interrupt vector demo
+  11            * @note      mark with #if 0 not active.
+  12          */
+  13          #if 0
+              void WKT_ISR (void) interrupt 17            /* Vector @  0x8B  */
+              {
+              _push_(SFRS);
+              
+                  clr_WKCON_WKTF;
+              
+              _pop_(SFRS);
+              }
+              #endif
+  23          
+  24          
+  25          /**
+  26            * @brief WKT delay s level application lib 
+  27            * @param[in] u8WKTRLData #include "ms51_8k.h" Fsys clock value. for example 8, use the real Fsys value.
+  28            *                   - \ref  value range is 1 ~ 25.  means wakeupt time from about 1s ~ 50s
+  29            * @note      limitation of the 8bit delay time. Range is 1s ~ 50s
+  30            * @example   WKT_AutoReload_Interrupt_Initial_S(16);
+  31          */
+  32          void WKT_AutoReload_Interrupt_Initial_S(unsigned int u16WKTRLData)
+  33          {
+  34   1          SFRS = 0; WKCON &= 0xF8; WKCON |= 0x07;     /*fix divider 2048: */
+  35   1          RWK = 256 - (u16WKTRLData*5);                /* divider 2048 means 204ms per tick */ 
+  36   1          ENABLE_WKT_INTERRUPT;
+  37   1          set_WKCON_WKTR;
+  38   1      }
+  39          
+  40          /**
+  41            * @brief WKT delay ms level application lib 
+  42            * @param[in] u8WKTRLData #include "ms51_8k.h" wakeup time value. for example 80 
+  43            *                  - \ref  value range is 10 ~ 1000.  means wakeupt time from about 10 ms ~ 1000 ms
+  44            * @note      limitation of the 8bit delay time. Range is 10 ms ~ 1000 ms
+  45            * @example   WKT_AutoReload_Interrupt_Initial_MS(200);
+  46          */
+  47          void WKT_AutoReload_Interrupt_Initial_MS(unsigned int u16WKTRLData)
+C51 COMPILER V9.60.7.0   WKT                                                               11/13/2023 22:07:53 PAGE 2   
+
+  48          {
+  49   1      
+  50   1          SFRS = 0; WKCON &= 0xF8; WKCON |= 0x03;     /*fix divider 64: */
+  51   1          RWK = 256 - (u16WKTRLData/6);                /* means 6.4ms per tick */
+  52   1          ENABLE_WKT_INTERRUPT;
+  53   1          set_WKCON_WKTR;
+  54   1      }
+  55          
+  56          /**
+  57           * @brief       Wakeup time setting 
+  58           * @param       u8WKTCLKSouce clock source select #include "ms51_8k.h" (LIRC / LXT)
+  59           * @param       u16WKTDIV WKT counter divider select  (1/4/16/64/256/512/1024/2048)
+  60           * @param       u8WKTRLData reload counter value(Value < 256) 
+  61           * @return      none
+  62           * @details     wake up time = u16WKTRLData * u16WKTDIV / 10000    (unit S)
+  63           * @note        Once timer1 or timer3 use as baudrate generator, please not #include "ms51_8k.h" as timer 
+             -delay.
+  64           * @example      WKT_Open (256,100);
+  65           */
+  66          
+  67          void WKT_Open(unsigned int u16WKTDIV, unsigned char u8WKTRLData)
+  68          {
+  69   1          SFRS = 0;
+  70   1          switch (u16WKTDIV)
+  71   1          {
+  72   2            case 1: WKCON &= 0xF8; break;
+  73   2            case 4: WKCON &= 0xF8; WKCON |= 0x01; break;
+  74   2            case 16: WKCON &= 0xF8; WKCON |= 0x02; break;
+  75   2            case 64: WKCON &= 0xF8; WKCON |= 0x03; break;
+  76   2            case 256: WKCON &= 0xF8; WKCON |= 0x04; break;
+  77   2            case 512: WKCON &= 0xF8; WKCON |= 0x05; break;
+  78   2            case 1024: WKCON &= 0xF8; WKCON |= 0x06; break;
+  79   2            case 2048: WKCON &= 0xF8; WKCON |= 0x07; break;
+  80   2          }
+  81   1          RWK = u8WKTRLData;
+  82   1          set_WKCON_WKTR;
+  83   1      }
+  84          
+  85          /**
+  86           * @brief       Wakeup time interrupt Enable/disable 
+  87           * @return      WKT_Current_Value
+  88           * @example      WKT_Interrupt(Enable);
+  89           */
+  90          void WKT_Interrupt(unsigned char u8WKTINT)
+  91          {
+  92   1          switch (u8WKTINT)
+  93   1          {
+  94   2              case Disable: DISABLE_WKT_INTERRUPT;
+  95   2              case Enable: ENABLE_WKT_INTERRUPT;
+  96   2          }
+  97   1      }
+  98          
+  99          //********************************************************************************************************
+             -********  
+ 100          //**** WKT close   
+ 101          //**** 1. Disable WKT 
+ 102          //**** 2. clear WKT reload counter 
+ 103          //**** 3. return WKT current counter value
+ 104          void WKT_Close()
+ 105          {
+ 106   1          clr_WKCON_WKTR;
+ 107   1      }
+C51 COMPILER V9.60.7.0   WKT                                                               11/13/2023 22:07:53 PAGE 3   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    182    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
