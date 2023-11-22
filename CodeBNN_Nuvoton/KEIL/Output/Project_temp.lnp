@@ -18,6 +18,7 @@
 ".\Output\wkt.obj",
 ".\Output\user_uart_delay_tm2.obj",
 ".\Output\user_i2c.obj",
+".\Output\user_adc.obj",
 ".\Output\STARTUP.obj" 
 TO ".\Output\Project_temp" 
 

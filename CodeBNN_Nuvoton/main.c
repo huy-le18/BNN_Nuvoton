@@ -7,6 +7,7 @@
 #include "ms51_16k.h"
 #include "user_uart_delay_tm2.h"
 #include "user_i2c.h"
+#include "user_adc.h"
 /************************************************************************************************************/
 /* FUNCTION_PURPOSE: Main Loop                                                                              */
 /************************************************************************************************************/
@@ -14,6 +15,66 @@
 void master_process(void);
 
 unsigned char CRC8(volatile unsigned char *Data, unsigned char length);
+uint8_t getTempFromTable(uint16_t ADTEMP, volatile uint8_t *temp);
+
+const uint16_t tempArr[56] = {
+    851, // 10 degree
+    844,
+    837,
+    830,
+    822,
+    814,
+    807,
+    799,
+    790,
+    782,
+    774,
+    765,
+    756,
+    747,
+    738,
+    731,
+    723,
+    714,
+    704,
+    695,
+    685,
+    675,
+    666,
+    656,
+    646,
+    636, // 35
+    626,
+    616,
+    606,
+    595,
+    585, // 40
+    575,
+    565,
+    555,
+    545,
+    535,
+    525,
+    515,
+    505,
+    495,
+    485,
+    475,
+    466,
+    456,
+    447,
+    437, // 55 degree
+    428,
+    419,
+    410,
+    401,
+    392, // 60 degree
+    384,
+    375,
+    367,
+    358,
+    350, // 65 degree
+};
 
 // define command send from slave
 #define TEST_CG_CMD 1  // test chong giat
@@ -121,6 +182,94 @@ volatile uint8_t reset_cg_cnt;
 volatile bit b_off_relay_due_to_cg_trigger;
 
 void tmr3_init(void);
+
+void ADC_ISR(void) interrupt 11          // Vector @  0x5B
+{
+    _push_(SFRS);
+		if (b_adcInOut == 0)
+		{ // ADC_Out
+			u16AdcOutValue = (uint16_t)(ADCRH << 4) | (ADCRL & 0x0f); 
+
+			// check valid adc value
+			if ((u16AdcOutValue > ADC_OUT_HIGH_LIMIT) || (u16AdcOutValue < ADC_OUT_LOW_LIMIT))
+			{
+				machineError |= (1 << ADC_OUTPUT_ERR_BIT);
+				m_tx_data |= (1 << ADC_OUTPUT_ERR_BIT);
+			}
+			else
+			{
+				machineError &= ~(1 << ADC_OUTPUT_ERR_BIT);
+				m_tx_data &= ~(1 << ADC_OUTPUT_ERR_BIT);
+			}
+
+			// check output temp high
+			if (u16AdcOutValue < ADC_OUT_TEMP_HIGH)
+			{
+				machineError |= (1 << OUT_TEMP_HIGHT_ERR_BIT);
+				m_tx_data |= (1 << OUT_TEMP_HIGHT_ERR_BIT);
+			}
+			else
+			{
+				machineError &= ~(1 << OUT_TEMP_HIGHT_ERR_BIT);
+				m_tx_data &= ~(1 << OUT_TEMP_HIGHT_ERR_BIT);
+			}
+
+			// dong/cat relay de phong hong triac
+			if (u16AdcOutValue <= 350)
+			{           // >= 65 degree
+//				_pa3 = 0; // off relay
+				b_relayOnAfter65 = 1;
+			}
+			else if (u16AdcOutValue > 392)
+			{ // < 60 degree
+				if (b_relayOnAfter65 == 1)
+				{
+					b_relayOnAfter65 = 0;
+//					_pa3 = 1; // on relay
+				}
+			}
+
+			tempConvertResult = getTempFromTable((uint16_t)u16AdcOutValue, &tempOutputValue);
+			if (tempConvertResult == 1)
+			{
+				// TODO:
+			}
+			else
+			{
+				// TODO: error convert temp
+			}
+		}
+		else
+		{ // ADC_In
+			u16AdcInValue = (uint16_t)(ADCRH << 4) | (ADCRL & 0x0f);
+
+			if ((u16AdcInValue > ADC_IN_HIGH_LIMIT) || (u16AdcInValue < ADC_IN_LOW_LIMIT))
+			{
+				machineError |= (1 << ADC_INPUT_ERR_BIT);
+				m_tx_data |= (1 << ADC_INPUT_ERR_BIT);
+			}
+			else
+			{
+				machineError &= ~(1 << ADC_INPUT_ERR_BIT);
+				m_tx_data &= ~(1 << ADC_INPUT_ERR_BIT);
+			}
+
+			tempConvertResult = getTempFromTable((uint16_t)u16AdcInValue, &tempInputValue);
+			if (tempConvertResult == 1)
+			{
+				// TODO:
+			}
+			else
+			{
+				// TODO: error convert temp
+			}
+		}
+
+		b_adc = 1;
+    clr_ADCCON0_ADCF;
+    _pop_(SFRS);
+}
+
 
 void Timer3_ISR(void) interrupt 16        // Vector @  0x83
 {
@@ -271,6 +420,25 @@ void main (void)
 		{
 			b_2ms = 0;
 			master_process();
+			if (b_adc == 1)
+      {
+        b_adc = 0;
+
+        // Switch ADC channel
+        if (b_adcInOut == 0)
+        {
+          b_adcInOut = 1;
+          ADC_SELECT_TEMP_IN();
+        }
+        else
+        {
+          b_adcInOut = 0;
+          ADC_SELECT_TEMP_OUT();
+        }
+
+        // trigger A/D conversion
+        ADC_START();
+      }
 //			task_2ms_handle();
 		}
 		// process 100ms task
@@ -528,7 +696,27 @@ unsigned char CRC8(volatile unsigned char *Data, unsigned char length)
 	return crc;
 }
 
+uint8_t getTempFromTable(uint16_t ADTEMP, volatile uint8_t *temp)
+{
+  uint8_t i;
 
+  if ((ADTEMP > tempArr[0]) || (ADTEMP < tempArr[55]))
+  {
+    *temp = 0;
+    return 0;
+  }
+
+  for (i = 1; i <= 55; i++)
+  {
+    if (tempArr[i] <= ADTEMP)
+    {
+      break;
+    }
+  }
+
+  *temp = i + 10 /* - 1 */;
+  return 1;
+}
 
 
 

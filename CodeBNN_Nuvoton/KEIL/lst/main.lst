@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 1   
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
@@ -23,566 +23,760 @@ line level    source
    7          #include "ms51_16k.h"
    8          #include "user_uart_delay_tm2.h"
    9          #include "user_i2c.h"
-  10          /*********************************************************************************************************
+  10          #include "user_adc.h"
+  11          /*********************************************************************************************************
              -***/
-  11          /* FUNCTION_PURPOSE: Main Loop                                                                            
+  12          /* FUNCTION_PURPOSE: Main Loop                                                                            
              -  */
-  12          /*********************************************************************************************************
+  13          /*********************************************************************************************************
              -***/
-  13          
-  14          void master_process(void);
-  15          
-  16          unsigned char CRC8(volatile unsigned char *Data, unsigned char length);
-  17          
-  18          // define command send from slave
-  19          #define TEST_CG_CMD 1  // test chong giat
-  20          #define RESET_CG_CMD 2 // rest chong giat
-  21          #define PUMP_ON_CMD 3  // pump on
-  22          #define PUMP_OFF_CMD 4 // pump off
-  23          
-  24          // define error send from master
-  25          #define CONNECT_UI_BOARD_ERR_BIT 0
-  26          #define OUT_TEMP_HIGHT_ERR_BIT 1
-  27          #define FLOW_LOW_ERR_BIT 2
-  28          #define TESTING_CB_NOTIFY_BIT 3
-  29          #define ADC_OUTPUT_ERR_BIT 4
-  30          #define ADC_INPUT_ERR_BIT 5
-  31          #define PUMP_STATUS_BIT 6
-  32          
-  33          #define MIN_FLOW_PULSE_ACTIVATED 8
-  34          #define LOW_FLOW_PULSE_LIMIT 28
-  35          
-  36          #define IN 1
-  37          #define OUT 0
-  38          
-  39          #define MAX_2MS_CNT 16 // for 125us step
-  40          #define MAX_12MS_CNT 96
-  41          volatile unsigned char count2ms;
-  42          volatile unsigned char count10ms, count20ms, count100ms, count200ms, count1s, count2s, count3s, count5s, c
-             -ount1min;
-  43          volatile uint8_t count12ms;
-  44          
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 2   
+  14          
+  15          void master_process(void);
+  16          
+  17          unsigned char CRC8(volatile unsigned char *Data, unsigned char length);
+  18          uint8_t getTempFromTable(uint16_t ADTEMP, volatile uint8_t *temp);
+  19          
+  20          const uint16_t tempArr[56] = {
+  21              851, // 10 degree
+  22              844,
+  23              837,
+  24              830,
+  25              822,
+  26              814,
+  27              807,
+  28              799,
+  29              790,
+  30              782,
+  31              774,
+  32              765,
+  33              756,
+  34              747,
+  35              738,
+  36              731,
+  37              723,
+  38              714,
+  39              704,
+  40              695,
+  41              685,
+  42              675,
+  43              666,
+  44              656,
+  45              646,
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 2   
 
-  45          volatile bit b_2ms;
-  46          volatile bit b_10ms;
-  47          volatile bit b_20ms;
-  48          volatile bit b_100ms;
-  49          volatile bit b_200ms;
-  50          volatile bit b_1s;
-  51          volatile bit b_2s;
-  52          volatile bit b_3s;
-  53          volatile bit b_5s;
-  54          volatile bit b_1min;
-  55          
-  56          volatile bit b_adc;
-  57          volatile uint8_t outTemp_ref;
-  58          
-  59          volatile bit FM_rx_done;
-  60          volatile bit FM_tx;
-  61          volatile bit M_SCL;
-  62          volatile bit M_SDA;
-  63          volatile bit M_SDA_IO;
-  64          volatile bit rise_m_sda;
-  65          volatile uint8_t cnt_clk;
-  66          volatile uint8_t m_tx_data;
-  67          volatile uint8_t m_rx_data[3];
-  68          
-  69          void master_process();
-  70          
-  71          #define ADC_IN_LOW_LIMIT 10
-  72          #define ADC_IN_HIGH_LIMIT 1000
-  73          
-  74          #define ADC_OUT_LOW_LIMIT 10
-  75          #define ADC_OUT_HIGH_LIMIT 1000
-  76          #define ADC_OUT_TEMP_HIGH 410 // 58 degree
-  77          
-  78          volatile uint16_t u16AdcInValue;
-  79          volatile uint16_t u16AdcOutValue;
-  80          volatile bit b_adcInOut;
-  81          volatile uint8_t tempConvertResult;
-  82          volatile uint8_t tempInputValue;
-  83          volatile uint8_t tempOutputValue;
+  46              636, // 35
+  47              626,
+  48              616,
+  49              606,
+  50              595,
+  51              585, // 40
+  52              575,
+  53              565,
+  54              555,
+  55              545,
+  56              535,
+  57              525,
+  58              515,
+  59              505,
+  60              495,
+  61              485,
+  62              475,
+  63              466,
+  64              456,
+  65              447,
+  66              437, // 55 degree
+  67              428,
+  68              419,
+  69              410,
+  70              401,
+  71              392, // 60 degree
+  72              384,
+  73              375,
+  74              367,
+  75              358,
+  76              350, // 65 degree
+  77          };
+  78          
+  79          // define command send from slave
+  80          #define TEST_CG_CMD 1  // test chong giat
+  81          #define RESET_CG_CMD 2 // rest chong giat
+  82          #define PUMP_ON_CMD 3  // pump on
+  83          #define PUMP_OFF_CMD 4 // pump off
   84          
-  85          volatile uint8_t machineError;
-  86          volatile bit b_relayOnAfter65;
-  87          volatile bit b_triac_can_on;
-  88          volatile uint8_t triac_can_on_cnt;
-  89          volatile uint8_t pump_on_cnt;
-  90          volatile uint8_t error_present_cnt;
-  91          volatile uint8_t off_heater_flow_reduction_cnt;
-  92          
-  93          volatile uint16_t u16FlowPulse;
-  94          volatile uint16_t u16PrevFlowPulse;
-  95          
-  96          #define MAX_TRIAC_PULSE 20
-  97          #define MAX_250US_DELAY 2
-  98          #define MAX_LEFT_PULSE_ON_CNT (MAX_2MS_CNT - MAX_250US_DELAY)
-  99          #define MAX_ADDITION_INTERVAL 10
- 100          #define FLOW_PULSE_AVG_INTERVAL 5
- 101          #define ADC_INVALUE_AVG_INTERVAL 5
- 102          
- 103          volatile uint8_t triac_pulse_cnt;
- 104          volatile uint8_t num_active_pulse;          // power from 0 to 20
- 105          volatile uint8_t num_active_pulse_with_add; // from 0 to 20
- 106          volatile uint8_t pulse_trigger_off_cnt;
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 3   
+  85          // define error send from master
+  86          #define CONNECT_UI_BOARD_ERR_BIT 0
+  87          #define OUT_TEMP_HIGHT_ERR_BIT 1
+  88          #define FLOW_LOW_ERR_BIT 2
+  89          #define TESTING_CB_NOTIFY_BIT 3
+  90          #define ADC_OUTPUT_ERR_BIT 4
+  91          #define ADC_INPUT_ERR_BIT 5
+  92          #define PUMP_STATUS_BIT 6
+  93          
+  94          #define MIN_FLOW_PULSE_ACTIVATED 8
+  95          #define LOW_FLOW_PULSE_LIMIT 28
+  96          
+  97          #define IN 1
+  98          #define OUT 0
+  99          
+ 100          #define MAX_2MS_CNT 16 // for 125us step
+ 101          #define MAX_12MS_CNT 96
+ 102          volatile unsigned char count2ms;
+ 103          volatile unsigned char count10ms, count20ms, count100ms, count200ms, count1s, count2s, count3s, count5s, c
+             -ount1min;
+ 104          volatile uint8_t count12ms;
+ 105          
+ 106          volatile bit b_2ms;
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 3   
 
- 107          volatile bit b_triggered;
- 108          volatile uint8_t num_addition;
- 109          volatile uint8_t additionInterval;
- 110          volatile uint16_t u16NumActive; // raw number of active pulse * 10
- 111          volatile bit b_boost;
- 112          volatile bit b_trigger_set_cg;
- 113          volatile bit b_trigger_reset_cg;
- 114          volatile uint8_t trigger_set_cg_cnt;
- 115          volatile uint8_t trigger_reset_cg_cnt;
+ 107          volatile bit b_10ms;
+ 108          volatile bit b_20ms;
+ 109          volatile bit b_100ms;
+ 110          volatile bit b_200ms;
+ 111          volatile bit b_1s;
+ 112          volatile bit b_2s;
+ 113          volatile bit b_3s;
+ 114          volatile bit b_5s;
+ 115          volatile bit b_1min;
  116          
- 117          volatile bit b_test_cg;  // test chong giat
- 118          volatile bit b_reset_cg; // reset chong giat
- 119          volatile uint8_t test_cg_cnt;
- 120          volatile uint8_t reset_cg_cnt;
- 121          volatile bit b_off_relay_due_to_cg_trigger;
- 122          
- 123          void tmr3_init(void);
- 124          
- 125          void Timer3_ISR(void) interrupt 16        // Vector @  0x83
- 126          {
- 127   1        _push_(SFRS);
- 128   1        count2ms++;
- 129   1        if (count2ms >= MAX_2MS_CNT) // 400 <-> 2ms
- 130   1        {
- 131   2          count2ms = 0;
- 132   2          b_2ms = 1;
- 133   2          count10ms++;
- 134   2          count20ms++;
- 135   2          count100ms++;
- 136   2          count200ms++;
- 137   2      
- 138   2          if (count10ms >= 5) // 2*5=10ms
- 139   2          {
- 140   3            b_10ms = 1;
- 141   3            count10ms = 0;
- 142   3      
- 143   3            // test chong giat
- 144   3            if (b_test_cg == 1)
- 145   3            {
- 146   4              if (test_cg_cnt < 17)
- 147   4              {
- 148   5      //          _pc1 = !_pc1;
- 149   5                test_cg_cnt++;
- 150   5              }
- 151   4              else
- 152   4              {
- 153   5                b_test_cg = 0;
- 154   5                test_cg_cnt = 0;
- 155   5      //          _pc1 = 0;
- 156   5              }
- 157   4            }
- 158   3      
- 159   3            // reset chong giat
- 160   3            if (b_reset_cg == 1)
- 161   3            {
- 162   4              if (reset_cg_cnt < 30)
- 163   4              {
- 164   5                reset_cg_cnt++;
- 165   5      //          _pc2 = 1;
- 166   5              }
- 167   4              else
- 168   4              {
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 4   
+ 117          volatile bit b_adc;
+ 118          volatile uint8_t outTemp_ref;
+ 119          
+ 120          volatile bit FM_rx_done;
+ 121          volatile bit FM_tx;
+ 122          volatile bit M_SCL;
+ 123          volatile bit M_SDA;
+ 124          volatile bit M_SDA_IO;
+ 125          volatile bit rise_m_sda;
+ 126          volatile uint8_t cnt_clk;
+ 127          volatile uint8_t m_tx_data;
+ 128          volatile uint8_t m_rx_data[3];
+ 129          
+ 130          void master_process();
+ 131          
+ 132          #define ADC_IN_LOW_LIMIT 10
+ 133          #define ADC_IN_HIGH_LIMIT 1000
+ 134          
+ 135          #define ADC_OUT_LOW_LIMIT 10
+ 136          #define ADC_OUT_HIGH_LIMIT 1000
+ 137          #define ADC_OUT_TEMP_HIGH 410 // 58 degree
+ 138          
+ 139          volatile uint16_t u16AdcInValue;
+ 140          volatile uint16_t u16AdcOutValue;
+ 141          volatile bit b_adcInOut;
+ 142          volatile uint8_t tempConvertResult;
+ 143          volatile uint8_t tempInputValue;
+ 144          volatile uint8_t tempOutputValue;
+ 145          
+ 146          volatile uint8_t machineError;
+ 147          volatile bit b_relayOnAfter65;
+ 148          volatile bit b_triac_can_on;
+ 149          volatile uint8_t triac_can_on_cnt;
+ 150          volatile uint8_t pump_on_cnt;
+ 151          volatile uint8_t error_present_cnt;
+ 152          volatile uint8_t off_heater_flow_reduction_cnt;
+ 153          
+ 154          volatile uint16_t u16FlowPulse;
+ 155          volatile uint16_t u16PrevFlowPulse;
+ 156          
+ 157          #define MAX_TRIAC_PULSE 20
+ 158          #define MAX_250US_DELAY 2
+ 159          #define MAX_LEFT_PULSE_ON_CNT (MAX_2MS_CNT - MAX_250US_DELAY)
+ 160          #define MAX_ADDITION_INTERVAL 10
+ 161          #define FLOW_PULSE_AVG_INTERVAL 5
+ 162          #define ADC_INVALUE_AVG_INTERVAL 5
+ 163          
+ 164          volatile uint8_t triac_pulse_cnt;
+ 165          volatile uint8_t num_active_pulse;          // power from 0 to 20
+ 166          volatile uint8_t num_active_pulse_with_add; // from 0 to 20
+ 167          volatile uint8_t pulse_trigger_off_cnt;
+ 168          volatile bit b_triggered;
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 4   
 
- 169   5                b_reset_cg = 0;
- 170   5                reset_cg_cnt = 0;
- 171   5      //          _pc2 = 0;
- 172   5              }
- 173   4            }
- 174   3          }
- 175   2          if (count20ms >= 10) // 2*10=20ms
- 176   2          {
- 177   3            b_20ms = 1;
- 178   3            count20ms = 0;
- 179   3            count1s++;
- 180   3      
- 181   3            if (count1s >= 50)
- 182   3            { // 20ms*50=1s
- 183   4              b_1s = 1;
- 184   4              count1s = 0;
- 185   4              count2s++;
- 186   4              count3s++;
- 187   4              count5s++;
- 188   4              count1min++;
- 189   4      
- 190   4              if (count2s >= 2) // 2 seconds
- 191   4              {
- 192   5                count2s = 0;
- 193   5                b_2s = 1;
- 194   5              }
- 195   4      
- 196   4              if (count3s >= 3) // 3 seconds
- 197   4              {
- 198   5                count3s = 0;
- 199   5                b_3s = 1;
- 200   5              }
- 201   4      
- 202   4              if (count5s >= 5) // 5 seconds
- 203   4              {
- 204   5                count5s = 0;
- 205   5                b_5s = 1;
- 206   5              }
- 207   4      
- 208   4              if (count1min >= 60) // 1 minute counter
- 209   4              {
- 210   5                count1min = 0;
- 211   5                b_1min = 1;
- 212   5              }
- 213   4            }
- 214   3          }
- 215   2          if (count100ms >= 50)
- 216   2          { // 100ms
- 217   3            b_100ms = 1;
- 218   3            count100ms = 0;
- 219   3          }
- 220   2          if (count200ms >= 100)
- 221   2          { // 200ms
- 222   3            b_200ms = 1;
- 223   3            count200ms = 0;
- 224   3          }
- 225   2        }
- 226   1      
- 227   1        // control triac off
- 228   1        count12ms++;
- 229   1        if (count12ms >= MAX_12MS_CNT)
- 230   1        {
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 5   
+ 169          volatile uint8_t num_addition;
+ 170          volatile uint8_t additionInterval;
+ 171          volatile uint16_t u16NumActive; // raw number of active pulse * 10
+ 172          volatile bit b_boost;
+ 173          volatile bit b_trigger_set_cg;
+ 174          volatile bit b_trigger_reset_cg;
+ 175          volatile uint8_t trigger_set_cg_cnt;
+ 176          volatile uint8_t trigger_reset_cg_cnt;
+ 177          
+ 178          volatile bit b_test_cg;  // test chong giat
+ 179          volatile bit b_reset_cg; // reset chong giat
+ 180          volatile uint8_t test_cg_cnt;
+ 181          volatile uint8_t reset_cg_cnt;
+ 182          volatile bit b_off_relay_due_to_cg_trigger;
+ 183          
+ 184          void tmr3_init(void);
+ 185          
+ 186          void ADC_ISR(void) interrupt 11          // Vector @  0x5B
+ 187          {
+ 188   1          _push_(SFRS);
+ 189   1          if (b_adcInOut == 0)
+ 190   1          { // ADC_Out
+ 191   2            u16AdcOutValue = (uint16_t)(ADCRH << 4) | (ADCRL & 0x0f); 
+ 192   2      
+ 193   2            // check valid adc value
+ 194   2            if ((u16AdcOutValue > ADC_OUT_HIGH_LIMIT) || (u16AdcOutValue < ADC_OUT_LOW_LIMIT))
+ 195   2            {
+ 196   3              machineError |= (1 << ADC_OUTPUT_ERR_BIT);
+ 197   3              m_tx_data |= (1 << ADC_OUTPUT_ERR_BIT);
+ 198   3            }
+ 199   2            else
+ 200   2            {
+ 201   3              machineError &= ~(1 << ADC_OUTPUT_ERR_BIT);
+ 202   3              m_tx_data &= ~(1 << ADC_OUTPUT_ERR_BIT);
+ 203   3            }
+ 204   2      
+ 205   2            // check output temp high
+ 206   2            if (u16AdcOutValue < ADC_OUT_TEMP_HIGH)
+ 207   2            {
+ 208   3              machineError |= (1 << OUT_TEMP_HIGHT_ERR_BIT);
+ 209   3              m_tx_data |= (1 << OUT_TEMP_HIGHT_ERR_BIT);
+ 210   3            }
+ 211   2            else
+ 212   2            {
+ 213   3              machineError &= ~(1 << OUT_TEMP_HIGHT_ERR_BIT);
+ 214   3              m_tx_data &= ~(1 << OUT_TEMP_HIGHT_ERR_BIT);
+ 215   3            }
+ 216   2      
+ 217   2            // dong/cat relay de phong hong triac
+ 218   2            if (u16AdcOutValue <= 350)
+ 219   2            {           // >= 65 degree
+ 220   3      //        _pa3 = 0; // off relay
+ 221   3              b_relayOnAfter65 = 1;
+ 222   3            }
+ 223   2            else if (u16AdcOutValue > 392)
+ 224   2            { // < 60 degree
+ 225   3              if (b_relayOnAfter65 == 1)
+ 226   3              {
+ 227   4                b_relayOnAfter65 = 0;
+ 228   4      //          _pa3 = 1; // on relay
+ 229   4              }
+ 230   3            }
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 5   
 
- 231   2          count12ms = 0;
- 232   2        }
- 233   1        if (b_triggered == 1)
- 234   1        {
- 235   2          if (count12ms == pulse_trigger_off_cnt)
- 236   2          {
- 237   3      //      _pb0 = 1; // off triac
- 238   3            b_triggered = 0;
- 239   3          }
- 240   2        }
- 241   1        
- 242   1        clr_T3CON_TF3;
- 243   1        _pop_(SFRS);
- 244   1      }
- 245          
- 246          
- 247          void main (void) 
- 248          {
- 249   1          user_UART_software_init();
- 250   1          tmr3_init();
- 251   1          P0M1 &= ~(1 << 3);
- 252   1          P0M2 |= (1 << 3);  // 0b0001 0000  = 0x10
- 253   1          
- 254   1          M_SDA_IO = OUT;
- 255   1          user_i2c_scl_set_output();
- 256   1          user_i2c_sda_set_output();
- 257   1          //  gpio_init_sda();
- 258   1      
- 259   1          user_i2c_scl_output_high();
- 260   1          user_i2c_sda_output_high();
- 261   1      
- 262   1          FM_tx = 0;
- 263   1          while(1)
- 264   1          {
- 265   2          if (M_SDA_IO == IN)
- 266   2          {
- 267   3            M_SDA = user_i2c_sda_get_data();
- 268   3          }
- 269   2      
- 270   2          if (b_2ms == 1)
- 271   2          {
- 272   3            b_2ms = 0;
- 273   3            master_process();
- 274   3      //      task_2ms_handle();
- 275   3          }
- 276   2          // process 100ms task
- 277   2          if (b_100ms == 1)
- 278   2          {
- 279   3            b_100ms = 0;
- 280   3      //      task_100ms_handle();
- 281   3          }
- 282   2          // process 200ms task
- 283   2          if (b_200ms == 1)
- 284   2          {
- 285   3            b_200ms = 0;
- 286   3      
- 287   3            if (FM_tx == 0)
- 288   3            {
- 289   4              FM_tx = 1;
- 290   4              cnt_clk = 0;
- 291   4            }
- 292   3      //      task_200ms_handle();
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 6   
+ 231   2      
+ 232   2            tempConvertResult = getTempFromTable((uint16_t)u16AdcOutValue, &tempOutputValue);
+ 233   2            if (tempConvertResult == 1)
+ 234   2            {
+ 235   3              // TODO:
+ 236   3            }
+ 237   2            else
+ 238   2            {
+ 239   3              // TODO: error convert temp
+ 240   3            }
+ 241   2          }
+ 242   1          else
+ 243   1          { // ADC_In
+ 244   2            u16AdcInValue = (uint16_t)(ADCRH << 4) | (ADCRL & 0x0f);
+ 245   2      
+ 246   2            if ((u16AdcInValue > ADC_IN_HIGH_LIMIT) || (u16AdcInValue < ADC_IN_LOW_LIMIT))
+ 247   2            {
+ 248   3              machineError |= (1 << ADC_INPUT_ERR_BIT);
+ 249   3              m_tx_data |= (1 << ADC_INPUT_ERR_BIT);
+ 250   3            }
+ 251   2            else
+ 252   2            {
+ 253   3              machineError &= ~(1 << ADC_INPUT_ERR_BIT);
+ 254   3              m_tx_data &= ~(1 << ADC_INPUT_ERR_BIT);
+ 255   3            }
+ 256   2      
+ 257   2            tempConvertResult = getTempFromTable((uint16_t)u16AdcInValue, &tempInputValue);
+ 258   2            if (tempConvertResult == 1)
+ 259   2            {
+ 260   3              // TODO:
+ 261   3            }
+ 262   2            else
+ 263   2            {
+ 264   3              // TODO: error convert temp
+ 265   3            }
+ 266   2          }
+ 267   1      
+ 268   1          b_adc = 1;
+ 269   1          clr_ADCCON0_ADCF;
+ 270   1          _pop_(SFRS);
+ 271   1      }
+ 272          
+ 273          
+ 274          void Timer3_ISR(void) interrupt 16        // Vector @  0x83
+ 275          {
+ 276   1        _push_(SFRS);
+ 277   1        count2ms++;
+ 278   1        if (count2ms >= MAX_2MS_CNT) // 400 <-> 2ms
+ 279   1        {
+ 280   2          count2ms = 0;
+ 281   2          b_2ms = 1;
+ 282   2          count10ms++;
+ 283   2          count20ms++;
+ 284   2          count100ms++;
+ 285   2          count200ms++;
+ 286   2      
+ 287   2          if (count10ms >= 5) // 2*5=10ms
+ 288   2          {
+ 289   3            b_10ms = 1;
+ 290   3            count10ms = 0;
+ 291   3      
+ 292   3            // test chong giat
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 6   
 
- 293   3          }
- 294   2      
- 295   2          // process 1s task
- 296   2          if (b_1s == 1)
- 297   2          {
- 298   3            b_1s = 0;
- 299   3      //      task_1s_handle();
- 300   3          }
- 301   2      
- 302   2      
- 303   2          if (M_SDA_IO == IN)
- 304   2          {
- 305   3          }
- 306   2          else
- 307   2          {
- 308   3            if (M_SDA == 1)
- 309   3      
- 310   3              user_i2c_sda_output_high();
- 311   3            else
- 312   3      
- 313   3              user_i2c_sda_output_low();
- 314   3          }
- 315   2      
- 316   2          if (M_SCL == 1)
- 317   2          {
- 318   3            user_i2c_scl_output_high();
- 319   3          }
- 320   2          else
- 321   2          {
- 322   3            user_i2c_scl_output_low();
+ 293   3            if (b_test_cg == 1)
+ 294   3            {
+ 295   4              if (test_cg_cnt < 17)
+ 296   4              {
+ 297   5      //          _pc1 = !_pc1;
+ 298   5                test_cg_cnt++;
+ 299   5              }
+ 300   4              else
+ 301   4              {
+ 302   5                b_test_cg = 0;
+ 303   5                test_cg_cnt = 0;
+ 304   5      //          _pc1 = 0;
+ 305   5              }
+ 306   4            }
+ 307   3      
+ 308   3            // reset chong giat
+ 309   3            if (b_reset_cg == 1)
+ 310   3            {
+ 311   4              if (reset_cg_cnt < 30)
+ 312   4              {
+ 313   5                reset_cg_cnt++;
+ 314   5      //          _pc2 = 1;
+ 315   5              }
+ 316   4              else
+ 317   4              {
+ 318   5                b_reset_cg = 0;
+ 319   5                reset_cg_cnt = 0;
+ 320   5      //          _pc2 = 0;
+ 321   5              }
+ 322   4            }
  323   3          }
- 324   2          }
- 325   1          
- 326   1      }
- 327          
- 328          void tmr3_init(void)
- 329          {
- 330   1        
- 331   1        /*F = Fsys/16*/
- 332   1        T3CON |= (1 << 2);
- 333   1        
- 334   1        RL3 = (65535 - 124) & 0xff;
- 335   1        RH3 = (65535 - 124) >> 8;
- 336   1        
- 337   1        /*enable interupt tmr3*/
- 338   1        EIE1 |= (1 << 1);
- 339   1        
- 340   1        /*enable interrupt global*/
- 341   1        IE |= (1 << 7);
- 342   1        
- 343   1        /*START*/
- 344   1        T3CON |= (1 << 3);
- 345   1      }
- 346          
- 347          void master_process(void)
- 348          {
- 349   1        if (FM_tx)
- 350   1        {
- 351   2          // CLK output
- 352   2          M_SCL = !(cnt_clk % 2 == 0);
- 353   2      
- 354   2          // Start and stop bit
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 7   
+ 324   2          if (count20ms >= 10) // 2*10=20ms
+ 325   2          {
+ 326   3            b_20ms = 1;
+ 327   3            count20ms = 0;
+ 328   3            count1s++;
+ 329   3      
+ 330   3            if (count1s >= 50)
+ 331   3            { // 20ms*50=1s
+ 332   4              b_1s = 1;
+ 333   4              count1s = 0;
+ 334   4              count2s++;
+ 335   4              count3s++;
+ 336   4              count5s++;
+ 337   4              count1min++;
+ 338   4      
+ 339   4              if (count2s >= 2) // 2 seconds
+ 340   4              {
+ 341   5                count2s = 0;
+ 342   5                b_2s = 1;
+ 343   5              }
+ 344   4      
+ 345   4              if (count3s >= 3) // 3 seconds
+ 346   4              {
+ 347   5                count3s = 0;
+ 348   5                b_3s = 1;
+ 349   5              }
+ 350   4      
+ 351   4              if (count5s >= 5) // 5 seconds
+ 352   4              {
+ 353   5                count5s = 0;
+ 354   5                b_5s = 1;
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 7   
 
- 355   2          if (cnt_clk == 1 || cnt_clk == 18)
- 356   2          {
- 357   3            M_SDA = 1;
- 358   3          }
- 359   2          else if (cnt_clk == 0 || cnt_clk == 19)
- 360   2          {
- 361   3            M_SDA = 0;
- 362   3          }
- 363   2      
- 364   2          // Data send
- 365   2          else if (cnt_clk > 1 && cnt_clk < 18)
- 366   2          {
- 367   3            M_SDA = (m_tx_data >> (cnt_clk / 2 - 1)) & 0x01;
+ 355   5              }
+ 356   4      
+ 357   4              if (count1min >= 60) // 1 minute counter
+ 358   4              {
+ 359   5                count1min = 0;
+ 360   5                b_1min = 1;
+ 361   5              }
+ 362   4            }
+ 363   3          }
+ 364   2          if (count100ms >= 50)
+ 365   2          { // 100ms
+ 366   3            b_100ms = 1;
+ 367   3            count100ms = 0;
  368   3          }
- 369   2      
- 370   2          // ACK and change RX mode
- 371   2          else if (cnt_clk == 20)
- 372   2          {
- 373   3            M_SDA_IO = IN;
- 374   3            user_i2c_sda_set_input();  // them 1
- 375   3          }
- 376   2      
- 377   2          // Data receiver
- 378   2          else if (cnt_clk > 20 && cnt_clk < 70)
- 379   2          {
- 380   3            if (M_SCL == 1)
- 381   3              rise_m_sda = M_SDA;
- 382   3            else
- 383   3            {
- 384   4              // Bit 1
- 385   4              if (rise_m_sda && M_SDA)
- 386   4              {
- 387   5                m_rx_data[(cnt_clk - 22) / 16] = m_rx_data[(cnt_clk - 22) / 16] | (0x01 << ((((cnt_clk - 22) / 2) % 8
+ 369   2          if (count200ms >= 100)
+ 370   2          { // 200ms
+ 371   3            b_200ms = 1;
+ 372   3            count200ms = 0;
+ 373   3          }
+ 374   2        }
+ 375   1      
+ 376   1        // control triac off
+ 377   1        count12ms++;
+ 378   1        if (count12ms >= MAX_12MS_CNT)
+ 379   1        {
+ 380   2          count12ms = 0;
+ 381   2        }
+ 382   1        if (b_triggered == 1)
+ 383   1        {
+ 384   2          if (count12ms == pulse_trigger_off_cnt)
+ 385   2          {
+ 386   3      //      _pb0 = 1; // off triac
+ 387   3            b_triggered = 0;
+ 388   3          }
+ 389   2        }
+ 390   1        
+ 391   1        clr_T3CON_TF3;
+ 392   1        _pop_(SFRS);
+ 393   1      }
+ 394          
+ 395          
+ 396          void main (void) 
+ 397          {
+ 398   1          user_UART_software_init();
+ 399   1          tmr3_init();
+ 400   1          P0M1 &= ~(1 << 3);
+ 401   1          P0M2 |= (1 << 3);  // 0b0001 0000  = 0x10
+ 402   1          
+ 403   1          M_SDA_IO = OUT;
+ 404   1          user_i2c_scl_set_output();
+ 405   1          user_i2c_sda_set_output();
+ 406   1          //  gpio_init_sda();
+ 407   1      
+ 408   1          user_i2c_scl_output_high();
+ 409   1          user_i2c_sda_output_high();
+ 410   1      
+ 411   1          FM_tx = 0;
+ 412   1          while(1)
+ 413   1          {
+ 414   2          if (M_SDA_IO == IN)
+ 415   2          {
+ 416   3            M_SDA = user_i2c_sda_get_data();
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 8   
+
+ 417   3          }
+ 418   2      
+ 419   2          if (b_2ms == 1)
+ 420   2          {
+ 421   3            b_2ms = 0;
+ 422   3            master_process();
+ 423   3            if (b_adc == 1)
+ 424   3            {
+ 425   4              b_adc = 0;
+ 426   4      
+ 427   4              // Switch ADC channel
+ 428   4              if (b_adcInOut == 0)
+ 429   4              {
+ 430   5                b_adcInOut = 1;
+ 431   5                ADC_SELECT_TEMP_IN();
+ 432   5              }
+ 433   4              else
+ 434   4              {
+ 435   5                b_adcInOut = 0;
+ 436   5                ADC_SELECT_TEMP_OUT();
+ 437   5              }
+ 438   4      
+ 439   4              // trigger A/D conversion
+ 440   4              ADC_START();
+ 441   4            }
+ 442   3      //      task_2ms_handle();
+ 443   3          }
+ 444   2          // process 100ms task
+ 445   2          if (b_100ms == 1)
+ 446   2          {
+ 447   3            b_100ms = 0;
+ 448   3      //      task_100ms_handle();
+ 449   3          }
+ 450   2          // process 200ms task
+ 451   2          if (b_200ms == 1)
+ 452   2          {
+ 453   3            b_200ms = 0;
+ 454   3      
+ 455   3            if (FM_tx == 0)
+ 456   3            {
+ 457   4              FM_tx = 1;
+ 458   4              cnt_clk = 0;
+ 459   4            }
+ 460   3      //      task_200ms_handle();
+ 461   3          }
+ 462   2      
+ 463   2          // process 1s task
+ 464   2          if (b_1s == 1)
+ 465   2          {
+ 466   3            b_1s = 0;
+ 467   3      //      task_1s_handle();
+ 468   3          }
+ 469   2      
+ 470   2      
+ 471   2          if (M_SDA_IO == IN)
+ 472   2          {
+ 473   3          }
+ 474   2          else
+ 475   2          {
+ 476   3            if (M_SDA == 1)
+ 477   3      
+ 478   3              user_i2c_sda_output_high();
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 9   
+
+ 479   3            else
+ 480   3      
+ 481   3              user_i2c_sda_output_low();
+ 482   3          }
+ 483   2      
+ 484   2          if (M_SCL == 1)
+ 485   2          {
+ 486   3            user_i2c_scl_output_high();
+ 487   3          }
+ 488   2          else
+ 489   2          {
+ 490   3            user_i2c_scl_output_low();
+ 491   3          }
+ 492   2          }
+ 493   1          
+ 494   1      }
+ 495          
+ 496          void tmr3_init(void)
+ 497          {
+ 498   1        
+ 499   1        /*F = Fsys/16*/
+ 500   1        T3CON |= (1 << 2);
+ 501   1        
+ 502   1        RL3 = (65535 - 124) & 0xff;
+ 503   1        RH3 = (65535 - 124) >> 8;
+ 504   1        
+ 505   1        /*enable interupt tmr3*/
+ 506   1        EIE1 |= (1 << 1);
+ 507   1        
+ 508   1        /*enable interrupt global*/
+ 509   1        IE |= (1 << 7);
+ 510   1        
+ 511   1        /*START*/
+ 512   1        T3CON |= (1 << 3);
+ 513   1      }
+ 514          
+ 515          void master_process(void)
+ 516          {
+ 517   1        if (FM_tx)
+ 518   1        {
+ 519   2          // CLK output
+ 520   2          M_SCL = !(cnt_clk % 2 == 0);
+ 521   2      
+ 522   2          // Start and stop bit
+ 523   2          if (cnt_clk == 1 || cnt_clk == 18)
+ 524   2          {
+ 525   3            M_SDA = 1;
+ 526   3          }
+ 527   2          else if (cnt_clk == 0 || cnt_clk == 19)
+ 528   2          {
+ 529   3            M_SDA = 0;
+ 530   3          }
+ 531   2      
+ 532   2          // Data send
+ 533   2          else if (cnt_clk > 1 && cnt_clk < 18)
+ 534   2          {
+ 535   3            M_SDA = (m_tx_data >> (cnt_clk / 2 - 1)) & 0x01;
+ 536   3          }
+ 537   2      
+ 538   2          // ACK and change RX mode
+ 539   2          else if (cnt_clk == 20)
+ 540   2          {
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 10  
+
+ 541   3            M_SDA_IO = IN;
+ 542   3            user_i2c_sda_set_input();  // them 1
+ 543   3          }
+ 544   2      
+ 545   2          // Data receiver
+ 546   2          else if (cnt_clk > 20 && cnt_clk < 70)
+ 547   2          {
+ 548   3            if (M_SCL == 1)
+ 549   3              rise_m_sda = M_SDA;
+ 550   3            else
+ 551   3            {
+ 552   4              // Bit 1
+ 553   4              if (rise_m_sda && M_SDA)
+ 554   4              {
+ 555   5                m_rx_data[(cnt_clk - 22) / 16] = m_rx_data[(cnt_clk - 22) / 16] | (0x01 << ((((cnt_clk - 22) / 2) % 8
              -)));
- 388   5              }
- 389   4              // Bit 0
- 390   4              else if (!rise_m_sda && !M_SDA)
- 391   4              {
- 392   5              }
- 393   4              // Error
- 394   4              else
- 395   4              {
- 396   5                // error bit
- 397   5              }
- 398   4            }
- 399   3          }
- 400   2      
- 401   2          //
- 402   2          if (cnt_clk < 70)
- 403   2            cnt_clk++;
- 404   2          else
- 405   2          {
- 406   3            FM_rx_done = 1;
- 407   3      
- 408   3            // TODO: process received data
- 409   3            if (m_rx_data[2] == CRC8(m_rx_data, 2))
- 410   3            {
- 411   4              // machineError &= ~(1 << CONNECT_UI_BOARD_ERR_BIT);
- 412   4              // control temperature using number of active pulse
- 413   4              // TODO:
- 414   4              if (m_rx_data[0] <= 26)
- 415   4              {
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 8   
+ 556   5              }
+ 557   4              // Bit 0
+ 558   4              else if (!rise_m_sda && !M_SDA)
+ 559   4              {
+ 560   5              }
+ 561   4              // Error
+ 562   4              else
+ 563   4              {
+ 564   5                // error bit
+ 565   5              }
+ 566   4            }
+ 567   3          }
+ 568   2      
+ 569   2          //
+ 570   2          if (cnt_clk < 70)
+ 571   2            cnt_clk++;
+ 572   2          else
+ 573   2          {
+ 574   3            FM_rx_done = 1;
+ 575   3      
+ 576   3            // TODO: process received data
+ 577   3            if (m_rx_data[2] == CRC8(m_rx_data, 2))
+ 578   3            {
+ 579   4              // machineError &= ~(1 << CONNECT_UI_BOARD_ERR_BIT);
+ 580   4              // control temperature using number of active pulse
+ 581   4              // TODO:
+ 582   4              if (m_rx_data[0] <= 26)
+ 583   4              {
+ 584   5                if (m_rx_data[0] == 0)
+ 585   5                { // set off
+ 586   6                  outTemp_ref = 0;
+ 587   6                }
+ 588   5                else
+ 589   5                {
+ 590   6                  outTemp_ref = m_rx_data[0] + 29;
+ 591   6                }
+ 592   5              }
+ 593   4      
+ 594   4              if (m_rx_data[1] == TEST_CG_CMD)
+ 595   4              {
+ 596   5                if (b_trigger_reset_cg == 0)
+ 597   5                {
+ 598   6                  b_trigger_set_cg = 1;
+ 599   6                  num_active_pulse = 0;
+ 600   6                  outTemp_ref = 0;
+ 601   6                  machineError |= (1 << TESTING_CB_NOTIFY_BIT);
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 11  
 
- 416   5                if (m_rx_data[0] == 0)
- 417   5                { // set off
- 418   6                  outTemp_ref = 0;
- 419   6                }
- 420   5                else
- 421   5                {
- 422   6                  outTemp_ref = m_rx_data[0] + 29;
- 423   6                }
- 424   5              }
- 425   4      
- 426   4              if (m_rx_data[1] == TEST_CG_CMD)
- 427   4              {
- 428   5                if (b_trigger_reset_cg == 0)
- 429   5                {
- 430   6                  b_trigger_set_cg = 1;
- 431   6                  num_active_pulse = 0;
- 432   6                  outTemp_ref = 0;
- 433   6                  machineError |= (1 << TESTING_CB_NOTIFY_BIT);
- 434   6      
- 435   6                  // Off pump at test cg mode
- 436   6                  //            PUMP_OFF();
- 437   6      //            user_gpio_output_pump_low();
- 438   6                  m_tx_data &= ~(1 << PUMP_STATUS_BIT);
- 439   6                }
- 440   5              }
- 441   4              else if (m_rx_data[1] == RESET_CG_CMD)
- 442   4              {
- 443   5                if (b_trigger_set_cg == 0)
- 444   5                {
- 445   6                  b_triac_can_on = 0;
- 446   6                  b_trigger_reset_cg = 1;
- 447   6                  b_reset_cg = 1;
- 448   6                  //            _pa3 = 1; // on relay
- 449   6      //            user_gpio_output_outac_high();
- 450   6                  machineError &= ~(1 << TESTING_CB_NOTIFY_BIT);
- 451   6                }
- 452   5              }
- 453   4              else if (m_rx_data[1] == PUMP_ON_CMD)
- 454   4              {
- 455   5                // only on pump when NOT in CB mode
- 456   5                if ((machineError & (1 << TESTING_CB_NOTIFY_BIT)) == 0)
- 457   5                {
- 458   6                  //            PUMP_ON();
- 459   6      //            user_gpio_output_pump_high();
- 460   6                  pump_on_cnt = 0;
- 461   6                  m_tx_data |= (1 << PUMP_STATUS_BIT);
- 462   6                }
- 463   5              }
- 464   4              else if (m_rx_data[1] == PUMP_OFF_CMD)
- 465   4              {
- 466   5                if (pump_on_cnt >= 2)
- 467   5                {
- 468   6                  //            PUMP_OFF();
- 469   6      //            user_gpio_output_pump_low();
- 470   6                  m_tx_data &= ~(1 << PUMP_STATUS_BIT);
- 471   6                }
- 472   5              }
- 473   4              else
- 474   4              {
- 475   5                /* Not occur */
- 476   5              }
- 477   4            }
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 9   
+ 602   6      
+ 603   6                  // Off pump at test cg mode
+ 604   6                  //            PUMP_OFF();
+ 605   6      //            user_gpio_output_pump_low();
+ 606   6                  m_tx_data &= ~(1 << PUMP_STATUS_BIT);
+ 607   6                }
+ 608   5              }
+ 609   4              else if (m_rx_data[1] == RESET_CG_CMD)
+ 610   4              {
+ 611   5                if (b_trigger_set_cg == 0)
+ 612   5                {
+ 613   6                  b_triac_can_on = 0;
+ 614   6                  b_trigger_reset_cg = 1;
+ 615   6                  b_reset_cg = 1;
+ 616   6                  //            _pa3 = 1; // on relay
+ 617   6      //            user_gpio_output_outac_high();
+ 618   6                  machineError &= ~(1 << TESTING_CB_NOTIFY_BIT);
+ 619   6                }
+ 620   5              }
+ 621   4              else if (m_rx_data[1] == PUMP_ON_CMD)
+ 622   4              {
+ 623   5                // only on pump when NOT in CB mode
+ 624   5                if ((machineError & (1 << TESTING_CB_NOTIFY_BIT)) == 0)
+ 625   5                {
+ 626   6                  //            PUMP_ON();
+ 627   6      //            user_gpio_output_pump_high();
+ 628   6                  pump_on_cnt = 0;
+ 629   6                  m_tx_data |= (1 << PUMP_STATUS_BIT);
+ 630   6                }
+ 631   5              }
+ 632   4              else if (m_rx_data[1] == PUMP_OFF_CMD)
+ 633   4              {
+ 634   5                if (pump_on_cnt >= 2)
+ 635   5                {
+ 636   6                  //            PUMP_OFF();
+ 637   6      //            user_gpio_output_pump_low();
+ 638   6                  m_tx_data &= ~(1 << PUMP_STATUS_BIT);
+ 639   6                }
+ 640   5              }
+ 641   4              else
+ 642   4              {
+ 643   5                /* Not occur */
+ 644   5              }
+ 645   4            }
+ 646   3            else
+ 647   3            {
+ 648   4              // Invalid checksum ==> TODO:
+ 649   4              // means connection between two boards has problem
+ 650   4              // machineError |= (1 << CONNECT_UI_BOARD_ERR_BIT);
+ 651   4            }
+ 652   3            user_UART_software_send_string("data1: ",7);
+ 653   3            //      user_usart_string_transmit(USART2,buff1,3);
+ 654   3            user_UART_software_send_number(m_rx_data[0]);
+ 655   3            user_UART_software_send_byte('\n');
+ 656   3      
+ 657   3            user_UART_software_send_string("data2: ",7);
+ 658   3            user_UART_software_send_number(m_rx_data[1]);
+ 659   3            //      user_usart_string_transmit(USART2,buff2,3);
+ 660   3            user_UART_software_send_byte('\n');
+ 661   3            m_rx_data[0] = 0;
+ 662   3            m_rx_data[1] = 0;
+ 663   3            m_rx_data[2] = 0;
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 12  
 
- 478   3            else
- 479   3            {
- 480   4              // Invalid checksum ==> TODO:
- 481   4              // means connection between two boards has problem
- 482   4              // machineError |= (1 << CONNECT_UI_BOARD_ERR_BIT);
- 483   4            }
- 484   3            user_UART_software_send_string("data1: ",7);
- 485   3            //      user_usart_string_transmit(USART2,buff1,3);
- 486   3            user_UART_software_send_number(m_rx_data[0]);
- 487   3            user_UART_software_send_byte('\n');
- 488   3      
- 489   3            user_UART_software_send_string("data2: ",7);
- 490   3            user_UART_software_send_number(m_rx_data[1]);
- 491   3            //      user_usart_string_transmit(USART2,buff2,3);
- 492   3            user_UART_software_send_byte('\n');
- 493   3            m_rx_data[0] = 0;
- 494   3            m_rx_data[1] = 0;
- 495   3            m_rx_data[2] = 0;
- 496   3            cnt_clk = 0;
- 497   3            FM_tx = 0;
- 498   3            M_SCL = 1;
- 499   3            M_SDA_IO = OUT;
- 500   3            user_i2c_sda_set_output(); // them 2
- 501   3            M_SDA = 1;
- 502   3          }
- 503   2      
- 504   2        }
- 505   1      }
- 506          
- 507          unsigned char CRC8(volatile unsigned char *Data, unsigned char length)
- 508          {
- 509   1        unsigned char crc = 0x00;
- 510   1        unsigned char extract;
- 511   1        unsigned char sum;
- 512   1        unsigned char i;
- 513   1        unsigned char tempI;
- 514   1        
- 515   1        for (i = 0; i < length; i++)
- 516   1        {
- 517   2          extract = *Data;
- 518   2          for (tempI = 8; tempI; tempI--)
- 519   2          {
- 520   3            sum = (crc ^ extract) & 0x01;
- 521   3            crc >>= 1;
- 522   3            if (sum)
- 523   3              crc ^= 0x8C;
- 524   3            extract >>= 1;
- 525   3          }
- 526   2          Data++;
- 527   2        }
- 528   1        return crc;
- 529   1      }
- 530          
- 531          
- 532          
- 533          
- 534          
- 535          
- 536          
- 537          
- 538          
- 539          
-C51 COMPILER V9.60.7.0   MAIN                                                              11/14/2023 15:24:41 PAGE 10  
+ 664   3            cnt_clk = 0;
+ 665   3            FM_tx = 0;
+ 666   3            M_SCL = 1;
+ 667   3            M_SDA_IO = OUT;
+ 668   3            user_i2c_sda_set_output(); // them 2
+ 669   3            M_SDA = 1;
+ 670   3          }
+ 671   2      
+ 672   2        }
+ 673   1      }
+ 674          
+ 675          unsigned char CRC8(volatile unsigned char *Data, unsigned char length)
+ 676          {
+ 677   1        unsigned char crc = 0x00;
+ 678   1        unsigned char extract;
+ 679   1        unsigned char sum;
+ 680   1        unsigned char i;
+ 681   1        unsigned char tempI;
+ 682   1        
+ 683   1        for (i = 0; i < length; i++)
+ 684   1        {
+ 685   2          extract = *Data;
+ 686   2          for (tempI = 8; tempI; tempI--)
+ 687   2          {
+ 688   3            sum = (crc ^ extract) & 0x01;
+ 689   3            crc >>= 1;
+ 690   3            if (sum)
+ 691   3              crc ^= 0x8C;
+ 692   3            extract >>= 1;
+ 693   3          }
+ 694   2          Data++;
+ 695   2        }
+ 696   1        return crc;
+ 697   1      }
+ 698          
+ 699          uint8_t getTempFromTable(uint16_t ADTEMP, volatile uint8_t *temp)
+ 700          {
+ 701   1        uint8_t i;
+ 702   1      
+ 703   1        if ((ADTEMP > tempArr[0]) || (ADTEMP < tempArr[55]))
+ 704   1        {
+ 705   2          *temp = 0;
+ 706   2          return 0;
+ 707   2        }
+ 708   1      
+ 709   1        for (i = 1; i <= 55; i++)
+ 710   1        {
+ 711   2          if (tempArr[i] <= ADTEMP)
+ 712   2          {
+ 713   3            break;
+ 714   3          }
+ 715   2        }
+ 716   1      
+ 717   1        *temp = i + 10 /* - 1 */;
+ 718   1        return 1;
+ 719   1      }
+ 720          
+ 721          
+ 722          
+ 723          
+ 724          
+ 725          
+C51 COMPILER V9.60.7.0   MAIN                                                              11/22/2023 14:52:23 PAGE 13  
 
- 540          
+ 726          
+ 727          
+ 728          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1009    ----
+   CODE SIZE        =   1556    ----
    CONSTANT SIZE    =     16    ----
-   XDATA SIZE       =     45       5
+   XDATA SIZE       =    157       8
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

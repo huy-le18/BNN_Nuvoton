@@ -1,0 +1,53 @@
+C51 COMPILER V9.60.7.0   USER_ADC                                                          11/22/2023 14:48:15 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE USER_ADC
+OBJECT MODULE PLACED IN .\Output\user_adc.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\user_library\src\user_adc.c LARGE OMF2 OPTIMIZE(7,SPEED) BROWSE INCDI
+                    -R(..\Library\Device\Include;..\Library\StdDriver\inc;..\user_library\inc) DEBUG PRINT(.\lst\user_adc.lst) TABS(2) OBJECT
+                    -(.\Output\user_adc.obj)
+
+line level    source
+
+   1          #include "user_adc.h"
+   2          #include "ms51_16k.h"
+   3          
+   4          
+   5          void adc_init(void)
+   6          {
+   7   1        /*enable ADC*/
+   8   1        ADCCON1 |= (1 << 0); 
+   9   1        /*Fadc = Fsys/1*/
+  10   1        ADCCON1 &= ~(1 << 4);
+  11   1        ADCCON1 &= ~(1 << 5);
+  12   1        
+  13   1        /*channel 5*/
+  14   1        ADCCON0 &= ~(1 << 3);
+  15   1      //  ADCCON0 |= (1 << 2);
+  16   1        ADCCON0 &= ~(1 << 1);
+  17   1      //  ADCCON0 |= (1 << 0);
+  18   1        
+  19   1        /*enable interrupt ADC*/
+  20   1        IE |= (1 << 6);
+  21   1        /*enable interrupt global*/
+  22   1        IE |= (1 << 7);
+  23   1      }
+  24          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     22    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

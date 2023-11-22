@@ -45,17 +45,17 @@ void delay_ms(unsigned int cnt)
 
 void user_gpio_output_tx_high(void)
 {
-		P04 = 1;
+		P16 = 1;
 }
 void user_gpio_output_tx_low(void)
 {
-		P04 = 0;
+		P16 = 0;
 }
 
 void user_UART_software_init(void)
 {
-		P0M1 &= ~(1 << 4);
-  	P0M2 |= (1 << 4);  // 0b0001 0000  = 0x10
+		P1M1 &= ~(1 << 6);
+  	P1M2 |= (1 << 6);  // 0b0001 0000  = 0x10
 }
 
 void user_UART_software_send_byte(unsigned char TxData)

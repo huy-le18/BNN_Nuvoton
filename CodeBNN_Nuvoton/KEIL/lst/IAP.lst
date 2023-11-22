@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 1   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE IAP
@@ -62,7 +62,7 @@ line level    source
   44           * @brief       LDROM blank check
   45           * @param       u16IAPStartAddress define LDROM area start address
   46           * @param       u16IAPDataSize define LDROM need be erase bytes size
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 2   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 2   
 
   47           * @return      none
   48           * @details     Check each byte of LDROM is FFH or not.
@@ -126,7 +126,7 @@ line level    source
  106           * @brief       LDROM check loop
  107           * @param       u16IAPStartAddress define LDROM area start address
  108           * @param       u16IAPDataSize define LDROM need be erase bytes size
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 3   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 3   
 
  109           * @return      none
  110           * @details     Check with XRAM IAPDataBuf with LDROM
@@ -190,7 +190,7 @@ line level    source
  167           * @details     Check each byte of APPROM is FFH or not.
  168           * @example      APROM_Blank_Check(0x0000,2048);
  169           */
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 4   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 4   
 
  170          void Erase_Verify_APROM(unsigned int u16IAPStartAddress, unsigned int u16IAPDataSize)
  171          {   
@@ -254,7 +254,7 @@ line level    source
  229           * @example      APROM_Program_Verify(0x0000,1024);
  230           */
  231          void Program_Verify_APROM(unsigned int u16IAPStartAddress, unsigned int u16IAPDataSize)
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 5   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 5   
 
  232          {   
  233   1          unsigned int u16Count;
@@ -318,7 +318,7 @@ line level    source
  288   2                goto COPRST;
  289   2              IAPAL++;
  290   2              set_IAPTRG_IAPGO;
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 6   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 6   
 
  291   2              if (IAPFD != u8CF3)
  292   2                goto COPRST;
@@ -382,7 +382,7 @@ line level    source
  350   2              set_IAPTRG_IAPGO; 
  351   2              if (IAPFD != u8CF4)
  352   2                goto MDCFEND;
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 7   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 7   
 
  353   2              goto CFCLOSE;
  354   2      MDCFEND:
@@ -446,7 +446,7 @@ line level    source
  409   1          IAPAL = 0x00;
  410   1          IAPAH = 0x00;
  411   1          IAPCN = READ_UID;
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 8   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 8   
 
  412   1          for(u8Count=0;u8Count<12;u8Count++)
  413   1          {   
@@ -510,7 +510,7 @@ line level    source
  471   1      }
  472          
  473          /**
-C51 COMPILER V9.60.7.0   IAP                                                               11/14/2023 10:02:47 PAGE 9   
+C51 COMPILER V9.60.7.0   IAP                                                               11/22/2023 14:48:13 PAGE 9   
 
  474           * @brief       Read PID loop
  475           * @param       none

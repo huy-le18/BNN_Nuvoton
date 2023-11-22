@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   WKT                                                               11/14/2023 10:02:49 PAGE 1   
+C51 COMPILER V9.60.7.0   WKT                                                               11/22/2023 14:48:14 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE WKT
@@ -62,7 +62,7 @@ line level    source
   45            * @example   WKT_AutoReload_Interrupt_Initial_MS(200);
   46          */
   47          void WKT_AutoReload_Interrupt_Initial_MS(unsigned int u16WKTRLData)
-C51 COMPILER V9.60.7.0   WKT                                                               11/14/2023 10:02:49 PAGE 2   
+C51 COMPILER V9.60.7.0   WKT                                                               11/22/2023 14:48:14 PAGE 2   
 
   48          {
   49   1      
@@ -126,7 +126,7 @@ line level    source
  105          {
  106   1          clr_WKCON_WKTR;
  107   1      }
-C51 COMPILER V9.60.7.0   WKT                                                               11/14/2023 10:02:49 PAGE 3   
+C51 COMPILER V9.60.7.0   WKT                                                               11/22/2023 14:48:14 PAGE 3   
 
 
 

@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   TIMER                                                             11/14/2023 10:02:48 PAGE 1   
+C51 COMPILER V9.60.7.0   TIMER                                                             11/22/2023 14:48:14 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE TIMER
@@ -62,7 +62,7 @@ line level    source
   44   1          TL0TMP = LOBYTE(TIMER0CT);
   45   1          TH0 = TH0TMP;
   46   1          TL0 = TL0TMP;
-C51 COMPILER V9.60.7.0   TIMER                                                             11/14/2023 10:02:48 PAGE 2   
+C51 COMPILER V9.60.7.0   TIMER                                                             11/22/2023 14:48:14 PAGE 2   
 
   47   1          clr_TCON_TF0;
   48   1          set_TCON_TR0;                                    //Start Timer0
@@ -126,7 +126,7 @@ line level    source
  105            * @param[in] u6DLYUnit define delay time base is us. the minimum delay value not less than 100us, the ma
              -xima value base on u32SYSCLK
  106            *                       - \ref for 7.3728MHz (use HIRC) value range is 100 ~ 699050.  means delay time f
-C51 COMPILER V9.60.7.0   TIMER                                                             11/14/2023 10:02:48 PAGE 3   
+C51 COMPILER V9.60.7.0   TIMER                                                             11/22/2023 14:48:14 PAGE 3   
 
              -rom about 100us ~ 700ms
  107            *                       - \ref for 8MHz  (use MIRC) value range is 100 ~ 2097120.  means delay time from
@@ -190,7 +190,7 @@ line level    source
  162   1          TIMER2CT &= 0xFFFF;
  163   1          RH3 = HIBYTE(TIMER2CT);
  164   1          RL3 = LOBYTE(TIMER2CT);
-C51 COMPILER V9.60.7.0   TIMER                                                             11/14/2023 10:02:48 PAGE 4   
+C51 COMPILER V9.60.7.0   TIMER                                                             11/22/2023 14:48:14 PAGE 4   
 
  165   1          clr_T3CON_TF3;
  166   1          set_T3CON_TR3;                                    /* Trigger Timer3  */

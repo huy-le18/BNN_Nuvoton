@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/14/2023 11:31:44 PAGE 1   
+C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/22/2023 20:35:14 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE USER_UART_DELAY_TM2
@@ -56,19 +56,19 @@ line level    source
   45          
   46          void user_gpio_output_tx_high(void)
   47          {
-  48   1          P04 = 1;
+  48   1          P16 = 1;
   49   1      }
   50          void user_gpio_output_tx_low(void)
   51          {
-  52   1          P04 = 0;
+  52   1          P16 = 0;
   53   1      }
-C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/14/2023 11:31:44 PAGE 2   
+C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/22/2023 20:35:14 PAGE 2   
 
   54          
   55          void user_UART_software_init(void)
   56          {
-  57   1          P0M1 &= ~(1 << 4);
-  58   1          P0M2 |= (1 << 4);  // 0b0001 0000  = 0x10
+  57   1          P1M1 &= ~(1 << 6);
+  58   1          P1M2 |= (1 << 6);  // 0b0001 0000  = 0x10
   59   1      }
   60          
   61          void user_UART_software_send_byte(unsigned char TxData)
@@ -126,7 +126,7 @@ line level    source
  113   1        temp = number % 10;
  114   1        user_UART_software_send_byte(temp + 48);
  115   1        delay_us(DELAY_FRAME);
-C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/14/2023 11:31:44 PAGE 3   
+C51 COMPILER V9.60.7.0   USER_UART_DELAY_TM2                                               11/22/2023 20:35:14 PAGE 3   
 
  116   1      }
  117          

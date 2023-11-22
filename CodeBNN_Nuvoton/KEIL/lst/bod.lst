@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.7.0   BOD                                                               11/14/2023 10:02:45 PAGE 1   
+C51 COMPILER V9.60.7.0   BOD                                                               11/22/2023 14:48:12 PAGE 1   
 
 
 C51 COMPILER V9.60.7.0, COMPILATION OF MODULE BOD
@@ -62,7 +62,7 @@ line level    source
   45            *                       - \ref LPBOD_MODE_1 (Turn on BOD every 1.6ms)
   46            *                       - \ref LPBOD_MODE_2 (Turn on BOD every 6.4ms)
   47            *                       - \ref LPBOD_MODE_3 (Turn on BOD every 25.6ms)
-C51 COMPILER V9.60.7.0   BOD                                                               11/14/2023 10:02:45 PAGE 2   
+C51 COMPILER V9.60.7.0   BOD                                                               11/22/2023 14:48:12 PAGE 2   
 
   48            * @return  None
   49            * @note    None
